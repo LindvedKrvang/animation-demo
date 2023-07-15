@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild} from '@angular/core';
 
 interface Point {
   x: number,
@@ -23,6 +23,7 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   private context!: CanvasRenderingContext2D
 
   private xOffset: number = 0
+  private canvasWidth: number = 0
 
   private intervalIdentifier: any
 
@@ -35,6 +36,11 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
       this.draw()
       this.xOffset--
     }, DRAW_INTERVAL_MS)
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(): void {
+    this.setCanvasSize()
   }
 
   ngOnDestroy() {
@@ -61,7 +67,8 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   }
 
   private setCanvasSize(): void {
-    this.canvas.nativeElement.width = this.canvasContainer.nativeElement.offsetWidth
+    this.canvasWidth = this.canvasContainer.nativeElement.offsetWidth
+    this.canvas.nativeElement.width = this.canvasWidth
     this.canvas.nativeElement.height = this.canvasContainer.nativeElement.offsetHeight
   }
 
@@ -70,18 +77,26 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   }
 
   private draw(): void {
-    const increment: number = 1
-    for (let i = 0; i <= 2000; i += increment) {
+    const increment: number = 0.5
+    for (let i = (this.xOffset * -1); i <= this.canvasWidth + (this.xOffset * -1); i += increment) {
       const x: number = i + this.xOffset
       const from: Point = {
         x,
         y: 50
       }
 
-      if (i % 20 === 0) {
+      if (i % 50 === 0) {
         const toUp: Point = {
           x,
           y: 10
+        }
+        this.drawStraightLine(from, toUp)
+      }
+
+      if (i % 10 === 0) {
+        const toUp: Point = {
+          x,
+          y: 25
         }
         this.drawStraightLine(from, toUp)
       }
