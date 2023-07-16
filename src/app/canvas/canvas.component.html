@@ -1,3 +1,18 @@
 <div #canvasContainer class="canvas-container">
   <canvas #myCanvas></canvas>
+  <div>
+    <span>Amount of Sections to display: </span>
+    <input type="number" [(ngModel)]="amountOfSectionsInCanvas">
+  </div>
+  <div>
+    <span>Speed of Section: </span>
+    <input type="number" [(ngModel)]="secondsPrSection">
+    <span> seconds/section</span>
+  </div>
+  <div>
+    <span>Amount of SubSections pr Section: </span>
+    <input type="number" [(ngModel)]="amountOfSubSectionsPrSection">
+  </div>
+  <button (click)="startAnimation()">Start animation</button>
+  <button (click)="stopAnimation()">Stop animation</button>
 </div>

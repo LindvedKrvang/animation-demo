@@ -5,7 +5,9 @@ interface Point {
   y: number
 }
 
-const DRAW_INTERVAL_MS: number = 50
+const Y_BOTTOM_COORDINATION: number = 50
+const Y_LONG_LINE_TOP_COORDINATION: number = 10
+const Y_SHORT_LINE_TOP_COORDINATION: number = 30
 
 @Component({
   selector: 'app-canvas',
@@ -20,34 +22,32 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('myCanvas')
   public canvas!: ElementRef<HTMLCanvasElement>
 
+  public amountOfSectionsInCanvas: number = 10
+  public secondsPrSection: number = 1
+  public amountOfSubSectionsPrSection: number = 5
+
   private context!: CanvasRenderingContext2D
 
-  private xOffset: number = 0
   private canvasWidth: number = 0
 
-  private intervalIdentifier: any
+  private animationFrameIdentifier: any = undefined
 
-  ngAfterViewInit(): void {
-    this.initializeCanvas()
-    this.setCanvasSize()
-
-    this.intervalIdentifier = setInterval(() => {
-      this.clearCanvas()
-      this.draw()
-      this.xOffset--
-    }, DRAW_INTERVAL_MS)
-  }
 
   @HostListener('window:resize', ['$event'])
   onResize(): void {
     this.setCanvasSize()
   }
 
-  ngOnDestroy() {
-    if (this.intervalIdentifier) {
-      clearInterval(this.intervalIdentifier)
-      this.intervalIdentifier = undefined
-    }
+  private setCanvasSize(): void {
+    this.canvasWidth = this.canvasContainer.nativeElement.offsetWidth
+    this.canvas.nativeElement.width = this.canvasWidth
+    this.canvas.nativeElement.height = this.canvasContainer.nativeElement.offsetHeight
+  }
+
+  public ngAfterViewInit(): void {
+    this.initializeCanvas()
+    this.setCanvasSize()
+    this.startAnimation()
   }
 
   private initializeCanvas(): void {
@@ -66,47 +66,84 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
     this.context = context
   }
 
-  private setCanvasSize(): void {
-    this.canvasWidth = this.canvasContainer.nativeElement.offsetWidth
-    this.canvas.nativeElement.width = this.canvasWidth
-    this.canvas.nativeElement.height = this.canvasContainer.nativeElement.offsetHeight
+  public startAnimation(): void {
+    if (!this.animationFrameIdentifier) {
+      this.animationFrameIdentifier = requestAnimationFrame(time => this.animationFrameCallback(time))
+    }
+  }
+
+  public stopAnimation(): void {
+    if (this.animationFrameIdentifier) {
+      cancelAnimationFrame(this.animationFrameIdentifier)
+      this.animationFrameIdentifier = undefined
+    }
+  }
+
+  private animationFrameCallback(timestamp: number): void {
+    this.clearCanvas()
+    this.draw(timestamp)
+
+    this.animationFrameIdentifier = requestAnimationFrame(time => this.animationFrameCallback(time))
+  }
+
+  public ngOnDestroy() {
+   this.stopAnimation()
   }
 
   private clearCanvas(): void {
     this.context.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
   }
 
-  private draw(): void {
-    const increment: number = 0.5
-    for (let i = (this.xOffset * -1); i <= this.canvasWidth + (this.xOffset * -1); i += increment) {
-      const x: number = i + this.xOffset
+  private draw(timestampInMilliseconds: number): void {
+    const pixelsPrSection: number = this.canvasWidth / this.amountOfSectionsInCanvas
+    const millisecondsPrSection: number = this.secondsPrSection * 1000;
+    const pixelsPrMillisecond: number = pixelsPrSection / millisecondsPrSection
+    const timestampWithinSection: number = timestampInMilliseconds % millisecondsPrSection;
+
+    for (let i: number = 0; i <= this.canvasWidth + pixelsPrSection; i += pixelsPrSection) {
+      // Multiply with negative one to make the animation go from right to left.
+      const x: number = (timestampWithinSection * -1) * pixelsPrMillisecond + i;
       const from: Point = {
         x,
-        y: 50
+        y: Y_BOTTOM_COORDINATION
       }
+      this.drawLongVerticalLine(from)
 
-      if (i % 50 === 0) {
-        const toUp: Point = {
-          x,
-          y: 10
-        }
-        this.drawStraightLine(from, toUp)
+      const pixelsPrSubSection: number = pixelsPrSection / this.amountOfSubSectionsPrSection
+      for (let j: number = 1; j < this.amountOfSubSectionsPrSection; j++) {
+        from.x = x + (pixelsPrSubSection * j)
+        this.drawShortVerticalLine(from)
       }
-
-      if (i % 10 === 0) {
-        const toUp: Point = {
-          x,
-          y: 25
-        }
-        this.drawStraightLine(from, toUp)
-      }
-
-      const to: Point = {
-        x: x + increment,
-        y: 50
-      }
-      this.drawStraightLine(from, to)
     }
+    this.drawBottomLine()
+  }
+
+  private drawLongVerticalLine(from: Point): void {
+    const to: Point = {
+      x: from.x,
+      y: Y_LONG_LINE_TOP_COORDINATION
+    }
+    this.drawStraightLine(from, to)
+  }
+
+  private drawShortVerticalLine(from: Point): void {
+    const toUp: Point = {
+      x: from.x,
+      y: Y_SHORT_LINE_TOP_COORDINATION
+    }
+    this.drawStraightLine(from, toUp)
+  }
+
+  private drawBottomLine(): void {
+    const from: Point = {
+      x: 0,
+      y: Y_BOTTOM_COORDINATION
+    };
+    const to: Point = {
+      x: this.canvasWidth,
+      y: Y_BOTTOM_COORDINATION
+    };
+    this.drawStraightLine(from, to)
   }
 
   private drawStraightLine(from: Point, to: Point): void {
