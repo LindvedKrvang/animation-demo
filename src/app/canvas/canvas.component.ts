@@ -5,9 +5,10 @@ interface Point {
   y: number
 }
 
-const Y_BOTTOM_COORDINATE: number = 50
-const Y_LONG_LINE_TOP_COORDINATE: number = 10
-const Y_SHORT_LINE_TOP_COORDINATE: number = 30
+const Y_BOTTOM_COORDINATE: number = 60
+const Y_LONG_LINE_TOP_COORDINATE: number = 25
+const Y_SHORT_LINE_TOP_COORDINATE: number = 45
+const Y_TEXT_COORDINATE: number = 20
 
 @Component({
   selector: 'app-canvas',
@@ -100,14 +101,15 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
     const pixelsPrMillisecond: number = pixelsPrSection / millisecondsPrSection
     const timestampWithinSection: number = timestampInMilliseconds % millisecondsPrSection;
 
-    for (let i: number = 0; i <= this.canvasWidth + pixelsPrSection; i += pixelsPrSection) {
+    for (let i: number = 0; i <= this.amountOfSectionsInCanvas; i++) {
       // Multiply with negative one to make the animation go from right to left.
-      const x: number = (timestampWithinSection * -1) * pixelsPrMillisecond + i;
+      const x: number = (timestampWithinSection * -1) * pixelsPrMillisecond + (i * pixelsPrSection);
       const from: Point = {
         x,
         y: Y_BOTTOM_COORDINATE
       }
       this.drawLongVerticalLine(from)
+      this.drawTimestamp(timestampInMilliseconds, i, x)
 
       const pixelsPrSubSection: number = pixelsPrSection / this.amountOfSubSectionsPrSection
       for (let j: number = 1; j < this.amountOfSubSectionsPrSection; j++) {
@@ -116,6 +118,17 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
       }
     }
     this.drawBottomLine()
+  }
+
+  private drawTimestamp(timestampSinceStartMilliseconds: number, index: number, xCoordinate: number): void {
+    let secondsSinceStart: number = Math.floor(timestampSinceStartMilliseconds / 1000)
+    const isInNumberTable: boolean = secondsSinceStart % this.secondsPrSection === 0;
+    if (!isInNumberTable) {
+      // The 'seconds since start' is not in the number table of the current 'seconds pr section' so we need to find the closest number in the table that already has been shown.
+      // E.g. 11 is not in the number table of 3, so we need to display 9. 7 is not in the number table of 2, so we need to display 6.
+      secondsSinceStart -= secondsSinceStart % this.secondsPrSection
+    }
+    this.drawText(secondsSinceStart + (index * this.secondsPrSection) + '', xCoordinate)
   }
 
   private drawLongVerticalLine(from: Point): void {
@@ -151,5 +164,9 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
     this.context.moveTo(from.x, from.y)
     this.context.lineTo(to.x, to.y)
     this.context.stroke()
+  }
+
+  private drawText(text: string, x: number): void {
+    this.context.fillText(text, x, Y_TEXT_COORDINATE)
   }
 }
