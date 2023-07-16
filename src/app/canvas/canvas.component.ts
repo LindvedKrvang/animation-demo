@@ -5,9 +5,9 @@ interface Point {
   y: number
 }
 
-const Y_BOTTOM_COORDINATION: number = 50
-const Y_LONG_LINE_TOP_COORDINATION: number = 10
-const Y_SHORT_LINE_TOP_COORDINATION: number = 30
+const Y_BOTTOM_COORDINATE: number = 50
+const Y_LONG_LINE_TOP_COORDINATE: number = 10
+const Y_SHORT_LINE_TOP_COORDINATE: number = 30
 
 @Component({
   selector: 'app-canvas',
@@ -105,7 +105,7 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
       const x: number = (timestampWithinSection * -1) * pixelsPrMillisecond + i;
       const from: Point = {
         x,
-        y: Y_BOTTOM_COORDINATION
+        y: Y_BOTTOM_COORDINATE
       }
       this.drawLongVerticalLine(from)
 
@@ -121,7 +121,7 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   private drawLongVerticalLine(from: Point): void {
     const to: Point = {
       x: from.x,
-      y: Y_LONG_LINE_TOP_COORDINATION
+      y: Y_LONG_LINE_TOP_COORDINATE
     }
     this.drawStraightLine(from, to)
   }
@@ -129,7 +129,7 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   private drawShortVerticalLine(from: Point): void {
     const toUp: Point = {
       x: from.x,
-      y: Y_SHORT_LINE_TOP_COORDINATION
+      y: Y_SHORT_LINE_TOP_COORDINATE
     }
     this.drawStraightLine(from, toUp)
   }
@@ -137,11 +137,11 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   private drawBottomLine(): void {
     const from: Point = {
       x: 0,
-      y: Y_BOTTOM_COORDINATION
+      y: Y_BOTTOM_COORDINATE
     };
     const to: Point = {
       x: this.canvasWidth,
-      y: Y_BOTTOM_COORDINATION
+      y: Y_BOTTOM_COORDINATE
     };
     this.drawStraightLine(from, to)
   }
