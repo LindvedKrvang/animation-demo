@@ -1,4 +1,5 @@
 import {AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild} from '@angular/core';
+import {TimestampPipe} from '../timestamp.pipe';
 
 interface Point {
   x: number,
@@ -32,6 +33,8 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   private canvasWidth: number = 0
 
   private animationFrameIdentifier: any = undefined
+
+  constructor(private timestampPipe: TimestampPipe) {}
 
 
   @HostListener('window:resize', ['$event'])
@@ -128,7 +131,8 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
       // E.g. 11 is not in the number table of 3, so we need to display 9. 7 is not in the number table of 2, so we need to display 6.
       secondsSinceStart -= secondsSinceStart % this.secondsPrSection
     }
-    this.drawText(secondsSinceStart + (index * this.secondsPrSection) + '', xCoordinate)
+    const secondsToDisplay: number = secondsSinceStart + (index * this.secondsPrSection);
+    this.drawText(this.timestampPipe.transform(secondsToDisplay), xCoordinate)
   }
 
   private drawLongVerticalLine(from: Point): void {
